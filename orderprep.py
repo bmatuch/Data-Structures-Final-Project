@@ -3,8 +3,9 @@
 import requests
 import collections
 import datetime as dt
-from time import sleep
+from time import sleep, time
 from math import radians, cos, sin, asin, sqrt
+from queue import PriorityQueue
 
 
 # DEFINE CONSTANTS
@@ -49,7 +50,7 @@ def calculate_distance(user_lat, user_long):
 	return round(distance, 5)
 
 
-# CALCULATE ESTIMATED USER TIME TO RESTAURANT
+# CALCULATE ESTIMATED USER TIME TO RESTAURANT IN MINUTES
 def calculate_time(distance, mode):
 
 	v = 0
@@ -69,6 +70,15 @@ def calculate_time(distance, mode):
 
 	return round (time, 2)
 
+# Calculate the eta of order. Returns seconds since Unix epoch.
+def calculate_eta(order):
+	distance = calculate_distance(float(order["Latitude"]), float(order["Longitude"]))
+	minutes = calculate_time(distance, "walk") # Change to order["Mode"] later
+	seconds = minutes * 60;
+	curr_time = time()
+
+	return curr_time + seconds
+
 
 # FUNCTION TO NICELY PRINT ORDERS SO IT IS CLEAR HOW THE DATA IS SIMULATED
 def print_orders(data):
@@ -78,17 +88,31 @@ def print_orders(data):
 	for order in data:
 		# CALLING HUGH'S FUNCTIONS
 		distance = calculate_distance (float(order["Latitude"]), float(order["Longitude"]))
-		eta = calculate_time (distance, "walk")  # EVENTUALLY SHOULD BE order["Mode"]
-		print(f'Name: {order["Name"]}, Order: {order["Order"]}, Time Estimate: {eta} minutes')
+		time = calculate_time (distance, "walk")  # EVENTUALLY SHOULD BE order["Mode"]
+		print(f'Name: {order["Name"]}, Order: {order["Order"]}, Time Estimate: {time} minutes')
 
 	print()
 
+def print_queue(theQueue):
+	for element in theQueue:
+		print((epoch_to_hourMinute(element[0]), element[1]))
 
-# PRIORITY QUEUE FUNCTION
+def printPQ(thePQ):
+	print("\nPriority Queue:")
+	print_queue(thePQ.queue)
+	print("")
 
+def epoch_to_hourMinute(epochTime):
+	theTime = dt.datetime.fromtimestamp(epochTime)
+	return str(theTime.hour).rjust(2, '0') + ":" + str(theTime.minute).rjust(2, '0')
+
+def add_order_to_PQ(thePQ, order):
+	thePQ.put((calculate_eta(order), {"Name": order["Name"], "Order": order["Order"]}))
 
 # MAIN FUNCTION
 def main():
+	ordersPQ = PriorityQueue(); # Create PQ
+	printPQ(ordersPQ)
 	t = dt.datetime.now()
 
 	counter = 0
@@ -99,8 +123,13 @@ def main():
 	while loop:
 		delta = dt.datetime.now()-t
 		if delta.seconds >= 5:
+
 			data = load_restaurant_data()
 			print_orders(data)
+			for order in data:
+				add_order_to_PQ(ordersPQ, order)
+			printPQ(ordersPQ)
+
 			t = dt.datetime.now()
 			counter += 1
 			if counter == orders:
