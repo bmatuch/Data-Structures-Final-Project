@@ -10,6 +10,7 @@ from queue import PriorityQueue
 
 
 # DEFINE CONSTANTS
+RESTAURANT = "Chick-Fil-A Orders"
 CHICK_LAT = 41.69843
 CHICK_LONG = -86.23531
 
@@ -19,7 +20,6 @@ ORDERS = ["8 Nuggets", "12 Nuggets", "Frosted Lemonade", "Spicy Sandwich", "Mark
 # THESSE LOCATIONS INCLUDE DUNCAN HALL, MCGLINN HALL, WALSH HALL, DUNNE HALL, HESBURGH LIBRARY, LAFORTUNE STUDENT CENTER, + DUNCAN STUDENT CENTER
 LOCATIONS = [(41.69799, -86.24334),(41.69802, -86.24237),(41.70100, -86.23998),(41.70450, -86.23296),(41.70237, -86.23416),(41.69827, -86.23525),(41.70191, -86.23765)]
 MODES = ["Walk", "Run", "Bike", "Scooter"]
-
 
 # RANDOMLY GENERATE CUSTOMER DATA
 def load_restaurant_data(num_customers, TOTAL_ORDERS):
@@ -44,9 +44,7 @@ def load_restaurant_data(num_customers, TOTAL_ORDERS):
 
 		TOTAL_ORDERS += 1
 
-
 	return new_customers
-
 
 
 # FUNCTION TO CALCULATE THE DISTANCE FROM RESTAURANT TO USER
@@ -107,36 +105,35 @@ def print_orders(order):
 
 
 # PRINT THE PRIORITY QUEUE
-def printPQ(thePQ, processing_time):
+def print_list(nonPQ, processing_time):
 	print('\033[1m' + "\nORDER QUEUE:" + '\033[0m')
-	newPQ = PriorityQueue()	
+	new_list = []
 
-	while not thePQ.empty():
-		next_item = thePQ.get()
-		print(f'{next_item[1][0]}\t\tETA: {next_item[0]} minutes\t\tOrder: {next_item[1][1]}\t\tMode of Transportation: {next_item[1][2]}')
-		next_item[0] -= processing_time;
-		newPQ.put(next_item)
+	for x in nonPQ:
+		print(f'{x[1][0]}\t\tETA: {x[0]} minutes\t\tOrder: {x[1][1]}\t\tMode of Transportation: {x[1][2]}')
+		x[0] -= processing_time;
+		new_list.append(x)
 
 	print("")
 
-	return newPQ
+	return new_list
 
 
-# ADDS ORDER TO THE PRIORITY QUEUE
-def add_order_to_PQ(thePQ, order, time):
-	thePQ.put([time, [order["Name"], order["Order"], order["Mode"]]])
+# ADDS ORDER TO THE LIST
+def add_order_to_list(nonPQ, order, time):
+	nonPQ.append([time, [order["Name"], order["Order"], order["Mode"]]])
 
 
 # MAIN FUNCTION
 def main():
 	
-	# CREATE PQ
-	thePQ = PriorityQueue()
+	# CREATE LIST TO DEMONSTRATE REGULAR ORDER PROCESSING
+	nonPQ = []
 	t = dt.datetime.now()
 	completed_orders = []
  
 	counter = 0
-	new_customers = 0
+	orders = 5
 	workers = 5
 	overload = False
 
@@ -150,19 +147,20 @@ def main():
 	while loop:
 		delta = dt.datetime.now()-t
 		if delta.seconds >= 3:
-	
+
+			
 			print(f'\nThere are currently {workers} employees working.')
 			print(f'For this simulation, {processing_orders} orders are completed every {processing_time} minutes.\n')
 
 			if (counter != 0):
 
-				if (processing_orders > thePQ.qsize()):
+				if (processing_orders > len(nonPQ)):
 					old_processing_orders = processing_orders
-					processing_orders = thePQ.qsize()
+					processing_orders = len(nonPQ)
 					overload = True
 
 				for x in range(processing_orders):
-					completed_orders.append(thePQ.get())
+					completed_orders.append(nonPQ.pop(0))
 
 				if (overload == True):
 					processing_orders = old_processing_orders
@@ -175,7 +173,6 @@ def main():
 				# COMPLETED_ORDERS IS RESET SO THAT THE NEWLY COMPLETED ORDERS CAN BE SHOWN FOR CLARITY
 				completed_orders = []
 
-
 			new_customers = random.randint(5, 15)  # RANDOMLY GENERATES NEW NUMBER OF ORDERS
 			data = load_restaurant_data(new_customers, TOTAL_ORDERS)
 			TOTAL_ORDERS += new_customers
@@ -183,14 +180,13 @@ def main():
 			print('\033[1m' + "\nNEW ORDERS:" + '\033[0m')
 			for order in data:
 				time = print_orders(order)
-				add_order_to_PQ(thePQ, order, time)
+				add_order_to_list(nonPQ, order, time)
 
-			thePQ  = printPQ(thePQ, processing_time)	
+			nonPQ  = print_list(nonPQ, processing_time)	
 
 
 			t = dt.datetime.now()
 			counter += 1
-
 
 		sleep(1)
 		print("...")
