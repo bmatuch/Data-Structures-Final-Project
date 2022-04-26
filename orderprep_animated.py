@@ -11,8 +11,7 @@ from queue import PriorityQueue
 
 
 # CODE EXPLANATION
-# This is the unanimated version of our algorithm. This verison makes it extremely easy to see how efficient the
-# algorithm is and exactly how it works.
+# This code is the animated verison of orderprep.py. It is meant to simulate how an order board would look at a restaurant. 
 
 
 # DEFINE CONSTANTS
@@ -33,24 +32,28 @@ def load_restaurant_data(num_customers, TOTAL_ORDERS):
 	new_customers = []
 	
 	for i in range(num_customers):
-				
+		
+		# LAYOUT OF EACH CUSTOMER DICTONARY IN LIST	
 		customer = {"Name": "", "Order": "", "Latitude": 0.0, "Longitude": 0.0, "Mode": ""}
 		customer["Name"] = f'Customer {TOTAL_ORDERS}'
-		
+	
+		# AN ORDER IS RANDOMLY GENERATED FOR THE CUSTOMER	
 		customer["Order"] = ORDERS[random.randint(0, len(ORDERS)-1)]
 		
+		# A LATITUDE AND LONGITUDE ARE RANDOMLY GENERATED FROM LOCATIONS ON CAMPUS 
 		customer_loc = LOCATIONS[random.randint(0, len(LOCATIONS)-1)]
 		
 		customer["Latitude"] = customer_loc[0]
 		customer["Longitude"] = customer_loc[1]
 		
+		# CUSTOMER'S MODE OF TRANSPORTATION IS RANDOMLY GENERATED
 		customer["Mode"] = MODES[random.randint(0, len(MODES)-1)] 
 		
 		new_customers.append(customer)
-
 		TOTAL_ORDERS += 1
 
 
+	# LIST OF NEW CUSTOMERS IS RETURNED TO MAIN
 	return new_customers
 
 
@@ -85,6 +88,7 @@ def calculate_time(distance, mode):
 
 	v = 0
 
+	# CALCULATES ETA BASED ON MODE OF TRANSPORTATION 
 	if mode == "Walk":
 		v = 20
 	elif mode == "Run":
@@ -93,7 +97,7 @@ def calculate_time(distance, mode):
 		v = 5
 	elif mode == "Scooter":
 		v = 4
-
+	
 	time = v*distance
 	return round (time)
 
@@ -133,7 +137,6 @@ def add_order_to_PQ(thePQ, order, time):
 	thePQ.put([time, [order["Name"], order["Order"], order["Mode"]]])
 
 
-
 # MAIN FUNCTION
 def main():
 	
@@ -142,22 +145,36 @@ def main():
 	t = dt.datetime.now()
 	completed_orders = []
  
+	counter = 0
 	new_customers = 0
 	workers = 5
 	overload = False
-	counter = 0
 
 	TOTAL_ORDERS = 1
 
-	# INITIAL ASSUMPTION IS 5 WORKERS ARE WORKING; 8 ORDERS PROCESSED EVERY 3 MINUTES
+	# SIMULATION STARTS AT 2PM IN THE AFTERNOON
+	hours = 1
+	minutes = 57
+
+	# INITIAL ASSUMPTION IS 5 WORKERS ARE WORKING; 10 ORDERS PROCESSED EVERY 3 MINUTES
+	# THIS CAN BE CHANGED AT ANY TIME
 	processing_time = 3
 	processing_orders = 8
 
+
+	# INFINITE LOOP SO AS MANY SIMULATIONS AS YOU WANT CAN OCCUR
 	loop = True
 	while loop:
 		delta = dt.datetime.now()-t
 		if delta.seconds >= 3:
-	
+
+			if minutes < 10:
+				print('\n\033[1m' + str(hours) + ':0' + str(minutes) + ' PM' +'\033[0m\n')
+
+			else:			
+				print('\n\033[1m' + str(hours) + ':' + str(minutes) + ' PM' +'\033[0m\n')
+
+
 			print(f'\nThere are currently {workers} employees working.')
 			print(f'For this simulation, {processing_orders} orders are completed every {processing_time} minutes.\n')
 
@@ -192,13 +209,23 @@ def main():
 				time = print_orders(order)
 				add_order_to_PQ(thePQ, order, time)
 
-			thePQ  = printPQ(thePQ, processing_time)
+			thePQ  = printPQ(thePQ, processing_time)	
+
+
 			t = dt.datetime.now()
 			counter += 1
-		
-		sleep(1)
-		print("...")
 
+
+		# TO CLEAR THE SCREEN TO SIMULATE WHAT GRUBHUB WOULD ACTUALLY LOOK LIKE
+		sleep(3)
+		os.system('clear')
+
+		# 3 MINUTES PASS EVERY NEW SIMULATION
+		minutes += 3		
+		if (minutes >= 60):	
+			hours += 1
+			left = 60 - minutes
+			minutes = left
 
 
 # MAIN EXECUTION

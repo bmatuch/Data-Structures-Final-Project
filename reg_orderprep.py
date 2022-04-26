@@ -9,6 +9,10 @@ from math import radians, cos, sin, asin, sqrt
 from queue import PriorityQueue
 
 
+# EXPLANATION 
+# This code implements a regular list to show the difference between our priority queue
+# processing orders and how restaurants normally process orders.
+
 # DEFINE CONSTANTS
 RESTAURANT = "Chick-Fil-A Orders"
 CHICK_LAT = 41.69843
